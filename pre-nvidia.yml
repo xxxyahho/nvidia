@@ -1,0 +1,37 @@
+---
+- name: driver install
+  hosts: localhost
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  tasks:
+    - name: pre-setup command
+      command: "apt-get remove --purge nvidia* && apt update && apt upgrade"
+      ignore_errors: yes
+      tags:
+        - install
+
+    - name: blacklist nouveau
+      block:
+        - name: add lines to end of file
+          lineinfile:
+            dest: /etc/modprobe.d/blacklist-nouveau.conf
+            line: "{{ item }}"
+            insertbefore: EOF
+            create: yes
+          with_items:
+           - "blacklist nouveau"
+           - "options nouveau modeset=0"
+          tags:
+            - install
+
+    - name: update-initramfs -u
+      command: "update-initramfs -u"
+      tags:
+        - install
+
+    - name: reboot
+      command: "reboot"
+      tags:
+        - install
