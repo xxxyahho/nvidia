@@ -1,0 +1,72 @@
+autoinstall:
+  version: 1
+  locale: ja_JP.UTF-8
+  keyboard:
+    layout: us
+  timezone: Asia/Tokyo
+  identity:
+    hostname: Z170X-UD5
+    realname: 'hoge'
+    username: hoge
+    password: ""  # openssl passwd -6 hogehoge
+  storage:
+    layout:
+      name: lvm
+      sizing-policy: all
+    config:
+      - id: disk-sda
+        type: disk
+        device: /dev/disk/by-uuid/efd90ca1-3f78-451e-ab59-70334e8aa36c
+        ptable: gpt
+        wipe: superblock-recursive
+        preserve: false
+        grub_device: true
+      - id: partition-sda1
+        type: partition
+        number: 1
+        device: disk-sda
+        size: 100%
+      - id: pv-sda1
+        type: lvm_physical_volume
+        device: partition-sda1
+      - id: vg-root
+        type: lvm_volume_group
+        name: vg0
+        devices:
+          - pv-sda1
+      - id: lv-root
+        type: lvm_logical_volume
+        name: lv_root
+        size: 80%
+        volume_group: vg-root
+      - id: format-root
+        type: format
+        fstype: ext4
+        volume: lv-root
+      - id: mount-root
+        type: mount
+        path: /
+        device: format-root
+        #cloud-config
+  packages:
+    - vim
+    - htop
+    - curl
+    - git
+    - ansible
+    - openssh-server
+  source:
+    id: ubuntu-desktop
+
+  user-data:
+    write_files:
+      - path: /etc/sudoers.d/nopasswd-user
+        content: |
+          nao ALL=(ALL) NOPASSWD: ALL
+        permissions: '0440'
+        owner: root:root
+
+  late-commands:
+      - curtin in-target -- wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+      - curtin in-target -- apt install -U -y ./google-chrome-stable_current_amd64.deb
+      - curtin in-target -- rm -f ./google-chrome-stable_current_amd64.deb
