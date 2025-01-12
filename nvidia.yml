@@ -1,0 +1,22 @@
+---
+- name: repository add
+  hosts: localhost
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  tasks:
+    - name: pre-setup command
+      command: "add-apt-repository ppa:graphics-drivers/ppa"
+      tags:
+       - install
+
+#    - name: ubuntu-drivers devices
+#      command: "ubuntu-drivers devices|grep distro.non.free"
+#      tags:
+#       - install
+    
+    - name: ubuntu-drivers install
+      command: "apt install nvidia-driver-470 -y"
+      tags:
+       - install
